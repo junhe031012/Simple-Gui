@@ -1,5 +1,7 @@
 import tkinter as tk
 from tkinter import messagebox
+import csv
+import os
 
 class SurvivorApp:
     def __init__(self, root):
@@ -35,8 +37,16 @@ class SurvivorApp:
         submit_button = tk.Button(root, text="Submit", command=self.submit_data)
         submit_button.grid(row=7, column=0, columnspan=2, pady=10)
 
+        # CSV file path
+        self.csv_file = 'survivors_data.csv'
+
+        # Check if file exists, if not, create header
+        if not os.path.exists(self.csv_file):
+            with open(self.csv_file, mode='w', newline='') as file:
+                writer = csv.writer(file)
+                writer.writerow(['Name', 'Age', 'Gender', 'Latitude', 'Longitude', 'Inventory'])
+
     def submit_data(self):
-        # Collect the data
         name = self.name_entry.get()
         age = self.age_entry.get()
         gender = self.gender_entry.get()
@@ -56,21 +66,23 @@ class SurvivorApp:
             messagebox.showerror("Input Error", "Age must be integer; Latitude and Longitude must be float.")
             return
 
-        inventory_items = {}
-        try:
-            for item in inventory.split(","):
-                key, value = item.strip().split(":")
-                inventory_items[key.strip()] = int(value.strip())
-        except Exception as e:
-            messagebox.showerror("Input Error", "Inventory format incorrect. Example: Water:10, Food:5")
-            return
+        # Save data into CSV
+        with open(self.csv_file, mode='a', newline='') as file:
+            writer = csv.writer(file)
+            writer.writerow([name, age, gender, latitude, longitude, inventory])
 
-        # Show the result
-        result_message = f"Survivor Registered:\n\nName: {name}\nAge: {age}\nGender: {gender}\nLocation: ({latitude}, {longitude})\nInventory:"
-        for item, qty in inventory_items.items():
-            result_message += f"\n- {item}: {qty}"
-        
-        messagebox.showinfo("Registration Successful", result_message)
+        messagebox.showinfo("Success", f"Survivor {name} has been registered successfully!")
+
+        # Clear inputs after successful submission
+        self.clear_inputs()
+
+    def clear_inputs(self):
+        self.name_entry.delete(0, tk.END)
+        self.age_entry.delete(0, tk.END)
+        self.gender_entry.delete(0, tk.END)
+        self.latitude_entry.delete(0, tk.END)
+        self.longitude_entry.delete(0, tk.END)
+        self.inventory_entry.delete(0, tk.END)
 
 if __name__ == "__main__":
     root = tk.Tk()
